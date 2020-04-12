@@ -1,8 +1,9 @@
 package com.andreiiorga.garden.server.endpoints;
 
 import com.andreiiorga.garden.server.beans.DeviceCommand;
-import com.andreiiorga.garden.server.jms.ActiveMQProducer;
+import com.andreiiorga.garden.server.mqtt.MQTTService;
 import com.andreiiorga.garden.server.persistence.entities.DeviceEntity;
+import com.andreiiorga.garden.server.persistence.entities.FirebaseTokenEntity;
 import com.andreiiorga.garden.server.persistence.entities.PinEntity;
 import com.andreiiorga.garden.server.persistence.entities.UserEntity;
 import com.andreiiorga.garden.server.persistence.repositories.DeviceRepository;
@@ -10,15 +11,12 @@ import com.andreiiorga.garden.server.persistence.repositories.PinRepository;
 import com.andreiiorga.garden.server.persistence.repositories.UserRepository;
 import com.andreiiorga.garden.server.persistence.repositories.ViewsRepository;
 import com.google.gson.Gson;
+import org.eclipse.paho.client.mqttv3.MqttException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jms.JmsException;
 import org.springframework.stereotype.Component;
-
-import javax.jws.Oneway;
 import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
 import javax.ws.rs.*;
-import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Response;
 
 @Component
@@ -38,24 +36,39 @@ public class RestController {
     ViewsRepository viewsRepository;
 
     @Autowired
-    ActiveMQProducer activeMQProducer;
+    MQTTService mqttService;
 
     @Autowired
     EntityManager em;
 
     @POST
     @Path("/switch")
+    @Transactional
     public Response switchOn(DeviceCommand deviceCommand) {
         PinEntity pinEntity = pinRepository.findById(deviceCommand.getPinId());
         DeviceEntity deviceEntity = pinEntity.getDevice();
         Gson gson = new Gson();
 
-        try{
-            activeMQProducer.sendCommandToDevice(gson.toJson(deviceCommand.getCommand()), deviceEntity.getTopic());
+        try {
+            mqttService.sendMessage("smart-outlet" + deviceEntity.getTopic(), gson.toJson(deviceCommand.getCommand()));
             return Response.status(200).build();
-        }catch (JmsException jmsException){
+        } catch (MqttException e) {
+            e.printStackTrace();
             return Response.status(500).build();
         }
+    }
+
+    @POST
+    @Path("/register/token")
+    @Transactional
+    public Response registerToken(FirebaseTokenEntity tokenBean) {
+        try{
+            em.merge(tokenBean);
+        }catch (Exception e){
+            e.printStackTrace();
+            return Response.status(500).build();
+        }
+        return Response.status(200).build();
     }
 
     @GET

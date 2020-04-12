@@ -23,6 +23,17 @@ public class UserEntity {
     @Column(name = "[description]")
     private String description;
 
+    @Column(name = "[deviceToken]")
+    private String deviceToken;
+
+    public String getDeviceToken() {
+        return deviceToken;
+    }
+
+    public void setDeviceToken(String deviceToken) {
+        this.deviceToken = deviceToken;
+    }
+
     public int getId() {
         return id;
     }
