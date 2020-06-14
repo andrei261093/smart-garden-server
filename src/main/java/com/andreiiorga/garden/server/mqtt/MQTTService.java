@@ -5,6 +5,7 @@ import com.andreiiorga.garden.server.beans.IncomingDeviceMessage;
 import com.andreiiorga.garden.server.firebase.Firebase;
 import com.andreiiorga.garden.server.persistence.entities.HeartbeatEntity;
 import com.andreiiorga.garden.server.persistence.entities.PinEntity;
+import com.andreiiorga.garden.server.persistence.repositories.DeviceRepository;
 import com.andreiiorga.garden.server.persistence.repositories.FirebaseTokensRepository;
 import com.andreiiorga.garden.server.persistence.repositories.PinRepository;
 import com.google.gson.Gson;
@@ -16,7 +17,6 @@ import org.springframework.stereotype.Component;
 
 import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
-import java.io.StringReader;
 import java.net.URI;
 import java.util.Date;
 import java.util.List;
@@ -36,6 +36,9 @@ public class MQTTService implements MqttCallback {
 
     @Autowired
     FirebaseTokensRepository firebaseTokensRepository;
+
+    @Autowired
+    DeviceRepository deviceRepository;
 
     @Autowired
     EntityManager em;
@@ -94,7 +97,6 @@ public class MQTTService implements MqttCallback {
     public void deliveryComplete(IMqttDeliveryToken token) {
     }
 
-    @Transactional
     public void messageArrived(String topic, MqttMessage message){
         try {
             Gson gson = new Gson();
@@ -114,13 +116,13 @@ public class MQTTService implements MqttCallback {
                 if(!incomingDeviceMessage.isState()){
                     List<String> tokens = firebaseTokensRepository.getTokensByUser(pinEntity.getDevice().getUser());
                     for(String token: tokens){
-                        firebase.sendNotification("Smart-Garden", "Releul " + pinEntity.getDescription() + " s-a oprit!", token);
+                        firebase.sendNotification("Smart-Garden",pinEntity.getDescription() + " s-a oprit!", token);
                     }
 
                 }
             }else if(topic.equals(heartbeatTopic)){
                 HeartbeatMessage heartbeatMessage = gson.fromJson(new String(message.getPayload()), HeartbeatMessage.class);
-                em.merge(new HeartbeatEntity(heartbeatMessage.getIdDevice(), new Date()));
+                deviceRepository.logHeartbeat(new HeartbeatEntity(heartbeatMessage.getIdDevice(), new Date()));
             }
 
         }catch (Exception e){

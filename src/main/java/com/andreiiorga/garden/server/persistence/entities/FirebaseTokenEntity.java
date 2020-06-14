@@ -16,6 +16,9 @@ public class FirebaseTokenEntity {
     @Column(name = "[user]")
     int idUser;
 
+    public FirebaseTokenEntity() {
+    }
+
     public FirebaseTokenEntity(String token, int idUser) {
         this.token = token;
         this.idUser = idUser;

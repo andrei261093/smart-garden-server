@@ -17,6 +17,9 @@ public class HeartbeatEntity {
     @Column(name = "[lastHeartbeat]")
     Date lastHeartbeat;
 
+    public HeartbeatEntity() {
+    }
+
     public HeartbeatEntity(int idDevice, Date lastHeartbeat) {
         this.idDevice = idDevice;
         this.lastHeartbeat = lastHeartbeat;

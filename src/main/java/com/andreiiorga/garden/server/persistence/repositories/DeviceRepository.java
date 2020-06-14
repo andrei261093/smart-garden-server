@@ -1,6 +1,9 @@
 package com.andreiiorga.garden.server.persistence.repositories;
 
+import com.andreiiorga.garden.server.beans.HeartbeatMessage;
 import com.andreiiorga.garden.server.persistence.entities.DeviceEntity;
+import com.andreiiorga.garden.server.persistence.entities.FirebaseTokenEntity;
+import com.andreiiorga.garden.server.persistence.entities.HeartbeatEntity;
 import com.andreiiorga.garden.server.persistence.entities.UserEntity;
 import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,5 +37,15 @@ public class DeviceRepository {
 
     public DeviceEntity findByCustomId(String deviceCustomId) {
         return em.createQuery("SELECT d FROM DeviceEntity d WHERE d.topic = :deviceCustomId", DeviceEntity.class).setParameter("deviceCustomId", deviceCustomId).getSingleResult();
+    }
+
+    @Transactional
+    public void logHeartbeat(HeartbeatEntity heartbeatEntity){
+        em.merge(heartbeatEntity);
+    }
+
+    @Transactional
+    public void registerToken(FirebaseTokenEntity firebaseTokenEntity){
+        em.merge(firebaseTokenEntity);
     }
 }

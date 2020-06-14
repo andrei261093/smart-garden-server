@@ -62,8 +62,9 @@ public class RestController {
     @Path("/register/token")
     @Transactional
     public Response registerToken(FirebaseTokenEntity tokenBean) {
+        System.out.println("Registering token");
         try{
-            em.merge(tokenBean);
+            deviceRepository.registerToken(tokenBean);
         }catch (Exception e){
             e.printStackTrace();
             return Response.status(500).build();

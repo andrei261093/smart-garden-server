@@ -20,7 +20,7 @@ public class FirebaseTokensRepository {
 
     @Transactional
     public List<String> getTokensByUser(UserEntity user){
-        List<FirebaseTokenEntity> tokens = em.createQuery("SELECT t FROM FirebaseTokenEntity t WHERE t.user = :id", FirebaseTokenEntity.class).setParameter("id", user.getId()).getResultList();
+        List<FirebaseTokenEntity> tokens = em.createQuery("SELECT t FROM FirebaseTokenEntity t WHERE t.idUser = :id", FirebaseTokenEntity.class).setParameter("id", user.getId()).getResultList();
         List<String> returnList = new ArrayList<>();
 
         for(FirebaseTokenEntity token: tokens){
